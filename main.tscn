@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://bwp517oe2vd84"]
+
+[ext_resource type="Script" uid="uid://slqxmv8im74a" path="res://main.gd" id="1_script"]
+[ext_resource type="AudioStream" uid="uid://csqlou2wcwh2l" path="res://tap.wav" id="2_h2yge"]
+[ext_resource type="AudioStream" uid="uid://b1u7vbawctl5g" path="res://game_over.wav" id="3_1bvp3"]
+[ext_resource type="Script" uid="uid://d17h3v4tol5yt" path="res://addons/SharePlugin/Share.gd" id="4_1bvp3"]
+
+[node name="Main" type="Node2D" unique_id=1466216428]
+script = ExtResource("1_script")
+
+[node name="TapSound" type="AudioStreamPlayer" parent="." unique_id=207398745]
+stream = ExtResource("2_h2yge")
+
+[node name="GameOverSound" type="AudioStreamPlayer" parent="." unique_id=1361287654]
+stream = ExtResource("3_1bvp3")
+
+[node name="Share" type="Node" parent="." unique_id=648021919]
+script = ExtResource("4_1bvp3")
+metadata/_custom_type_script = "uid://d17h3v4tol5yt"

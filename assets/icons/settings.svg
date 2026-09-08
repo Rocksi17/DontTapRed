@@ -1,0 +1,20 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <g fill="#FFFFFF">
+    <rect x="43" y="3"  width="14" height="21" rx="5"/>
+    <rect x="43" y="76" width="14" height="21" rx="5"/>
+    <rect x="3"  y="43" width="21" height="14" rx="5"/>
+    <rect x="76" y="43" width="21" height="14" rx="5"/>
+  </g>
+  <g fill="#FFFFFF" transform="rotate(45 50 50)">
+    <rect x="43" y="3"  width="14" height="21" rx="5"/>
+    <rect x="43" y="76" width="14" height="21" rx="5"/>
+    <rect x="3"  y="43" width="21" height="14" rx="5"/>
+    <rect x="76" y="43" width="21" height="14" rx="5"/>
+  </g>
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    fill="#FFFFFF"
+    d="M50 19 A31 31 0 1 0 50.01 19 Z M50 35 A15 15 0 1 0 50.01 35 Z"
+  />
+</svg>

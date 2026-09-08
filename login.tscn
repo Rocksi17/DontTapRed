@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://h4vxad1my5bd"]
+
+[ext_resource type="Script" uid="uid://ba8f8d6sb8m6a" path="res://scripts/login.gd" id="1_cau7c"]
+[ext_resource type="Script" uid="uid://bffrdoenofbos" path="res://addons/DeeplinkPlugin/Deeplink.gd" id="2_3n56f"]
+
+[node name="Login" type="Control" unique_id=1302845516]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_cau7c")
+
+[node name="Deeplink" type="Node" parent="." unique_id=853519487]
+script = ExtResource("2_3n56f")
+scheme = "donttapred"
+host = "challenge"
+metadata/_custom_type_script = "uid://bffrdoenofbos"
+
+[connection signal="deeplink_received" from="Deeplink" to="." method="_on_deeplink_deeplink_received"]

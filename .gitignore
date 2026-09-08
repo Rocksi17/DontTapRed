@@ -1,0 +1,26 @@
+.godot/
+.DS_Store
+
+# Godot
+.godot/
+
+# macOS
+.DS_Store
+
+# Android generated/build files
+android/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/**/build/
+android/**/.cxx/
+
+# Android exported packages
+*.apk
+*.aab
+
+# iOS generated/exported files
+*.ipa
+*.xcarchive
+*.dSYM/
+*.xcframework/

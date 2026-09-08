@@ -1,0 +1,45 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="DON’T TAP RED"
+run/main_scene="uid://h4vxad1my5bd"
+config/features=PackedStringArray("4.7")
+boot_splash/image="res://splash.png"
+config/icon="res://icon.png"
+
+[autoload]
+
+SupabaseAuth="*uid://bkk2t645n0vjs"
+
+[display]
+
+window/size/viewport_width=360
+window/size/viewport_height=640
+window/size/window_width_override=360
+window/size/window_height_override=640
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/DeeplinkPlugin/plugin.cfg", "res://addons/SharePlugin/plugin.cfg", "res://addons/admob/plugin.cfg")
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://addons/admob/gdscript/sample/translations/admob_sample.en.translation", "res://addons/admob/gdscript/sample/translations/admob_sample.pt_BR.translation", "res://addons/admob/gdscript/sample/translations/admob_sample.es.translation", "res://addons/admob/gdscript/sample/translations/admob_sample.zh_CN.translation", "res://addons/admob/gdscript/sample/translations/admob_sample.ja.translation")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
