@@ -1092,6 +1092,89 @@ func refresh_session() -> void:
 
 	print("REFRESH REQUEST RESULT:", error)
 
+func delete_account() -> void:
+
+	print("================================")
+	print("🗑️ DELETE ACCOUNT")
+	print("================================")
+
+	if user_id.is_empty():
+		print("❌ DELETE ACCOUNT: USER ID MISSING")
+		return
+
+	if access_token.is_empty():
+		print("❌ DELETE ACCOUNT: ACCESS TOKEN MISSING")
+		return
+
+	var url := (
+		SUPABASE_URL +
+		"/functions/v1/delete-account"
+	)
+
+	var headers := PackedStringArray([
+		"apikey: " + SUPABASE_KEY,
+		"Authorization: Bearer " + access_token,
+		"Content-Type: application/json"
+	])
+
+	var http := HTTPRequest.new()
+	add_child(http)
+
+	http.request_completed.connect(
+		func(
+			result: int,
+			response_code: int,
+			response_headers: PackedStringArray,
+			body: PackedByteArray
+		) -> void:
+
+			var response_text := body.get_string_from_utf8()
+
+			print("================================")
+			print("🗑️ DELETE ACCOUNT RESPONSE")
+			print("HTTP:", response_code)
+			print("BODY:", response_text)
+			print("================================")
+
+			if response_code >= 200 and response_code < 300:
+
+				print("✅ ACCOUNT DELETED")
+
+				clear_auth_session()
+
+				access_token = ""
+				refresh_token = ""
+				user_id = ""
+				username = ""
+
+				player_games_played = 0
+				player_max_combo = 0
+				player_daily_best = 0
+				player_achievements = []
+
+				print("🧹 LOCAL ACCOUNT DATA CLEARED")
+
+				logged_out.emit()
+
+			else:
+
+				print("❌ ACCOUNT DELETION FAILED")
+
+			http.queue_free()
+	)
+
+	var error := http.request(
+		url,
+		headers,
+		HTTPClient.METHOD_POST,
+		"{}"
+	)
+
+	print(
+		"DELETE ACCOUNT REQUEST RESULT:",
+		error
+	)
+
 # =========================================================
 # LOGOUT
 # =========================================================

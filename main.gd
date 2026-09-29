@@ -6516,22 +6516,30 @@ func show_delete_account_confirmation() -> void:
 		delete_account_dialog.title = "Delete Account"
 
 		delete_account_dialog.dialog_text = (
-			"This will permanently delete your account "
-			+ "and associated game data.\n\n"
+			"Delete your account and all\n"
+			+ "associated game data?\n\n"
 			+ "This action cannot be undone."
 		)
 
 		delete_account_dialog.ok_button_text = "DELETE"
 		delete_account_dialog.cancel_button_text = "CANCEL"
 
+		delete_account_dialog.min_size = Vector2(320, 220)
+
 		add_child(delete_account_dialog)
+
+		var message_label := delete_account_dialog.get_label()
+
+		if message_label:
+			message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 		delete_account_dialog.confirmed.connect(
 			_on_delete_account_confirmed
 		)
 
 	delete_account_dialog.popup_centered(
-		Vector2(420, 240)
+		Vector2(320, 220)
 	)
 
 # =====================================================
@@ -7644,36 +7652,36 @@ func _notification(what: int) -> void:
 
 func setup_account_storage() -> void:
 
-    if SupabaseAuth.user_id.is_empty():
+	if SupabaseAuth.user_id.is_empty():
 
-        print("⚠️ ACCOUNT STORAGE: USER ID MISSING")
-        return
+		print("⚠️ ACCOUNT STORAGE: USER ID MISSING")
+		return
 
-    best_file = (
-        "user://best_score_" +
-        SupabaseAuth.user_id +
+	best_file = (
+		"user://best_score_" +
+		SupabaseAuth.user_id +
         ".cfg"
-    )
+	)
 
-    profile_stats_file = (
-        "user://profile_stats_" +
-        SupabaseAuth.user_id +
+	profile_stats_file = (
+		"user://profile_stats_" +
+		SupabaseAuth.user_id +
         ".cfg"
-    )
+	)
 
-    player_settings_file = (
-        "user://player_settings_" +
-        SupabaseAuth.user_id +
+	player_settings_file = (
+		"user://player_settings_" +
+		SupabaseAuth.user_id +
         ".cfg"
-    )
+	)
 
-    print("================================")
-    print("💾 ACCOUNT STORAGE INITIALIZED")
-    print("USER ID:", SupabaseAuth.user_id)
-    print("BEST FILE:", best_file)
-    print("PROFILE FILE:", profile_stats_file)
-    print("SETTINGS FILE:", player_settings_file)
-    print("================================")
+	print("================================")
+	print("💾 ACCOUNT STORAGE INITIALIZED")
+	print("USER ID:", SupabaseAuth.user_id)
+	print("BEST FILE:", best_file)
+	print("PROFILE FILE:", profile_stats_file)
+	print("SETTINGS FILE:", player_settings_file)
+	print("================================")
 
 # =========================================================
 # STORAGE
