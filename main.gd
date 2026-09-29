@@ -88,7 +88,9 @@ var share_message: String = ""
 # STORAGE
 # -------------------------
 
-var best_file: String = "user://best_score.cfg"
+var best_file: String = ""
+var profile_stats_file: String = ""
+var player_settings_file: String = ""
 
 # =========================================================
 # LEADERBOARD UI
@@ -283,7 +285,7 @@ var revive_reward_listener := OnUserEarnedRewardListener.new()
 var rewarded_load_callback := RewardedAdLoadCallback.new()
 
 const TEST_REWARDED_ANDROID := "ca-app-pub-5417052420459652/7059079931"
-const TEST_REWARDED_IOS := "ca-app-pub-5417052420459652/6278073626"
+const TEST_REWARDED_IOS := "ca-app-pub-3940256099942544/1712485313"
 
 var show_revive_page: bool = false
 var revive_page_rect := Rect2()
@@ -347,6 +349,11 @@ const HOME_BUTTON_RADIUS: float = 43.0
 var game_over_close_rect := Rect2()
 var settings_logout_rect := Rect2()
 
+var settings_delete_account_rect: Rect2
+
+var delete_account_dialog: ConfirmationDialog
+var account_delete_in_progress: bool = false
+
 
 func _ready() -> void:
 
@@ -369,6 +376,9 @@ func _ready() -> void:
 		SupabaseAuth.stats_loaded.connect(
 			_on_stats_loaded_from_supabase
 		)
+
+	if not SupabaseAuth.logged_out.is_connected(_on_account_deleted):
+		SupabaseAuth.logged_out.connect(_on_account_deleted)
 
 
 	# =====================================================
@@ -445,8 +455,6 @@ func _ready() -> void:
 	# LOCAL DATA
 	# =====================================================
 
-	load_best_score()
-	load_profile_stats()
 	load_game_settings()
 	load_daily_state()
 
@@ -476,23 +484,25 @@ func _ready() -> void:
 
 	var config := ConfigFile.new()
 
-	if config.load("user://player_settings.cfg") == OK:
+	if not player_settings_file.is_empty():
 
-		player_name = str(
-			config.get_value(
-				"player",
-				"name",
-			    ""
-			)
-		)
+		if config.load(player_settings_file) == OK:
 
-		player_id = str(
-			config.get_value(
-				"player",
-				"id",
-			    ""
+			player_name = str(
+				config.get_value(
+					"player",
+					"name",
+					""
+				)
 			)
-		)
+
+			player_id = str(
+				config.get_value(
+					"player",
+					"id",
+					""
+				)
+			)
 
 	# =====================================================
 	# USE SUPABASE USER ID
@@ -507,6 +517,11 @@ func _ready() -> void:
 		print("PLAYER ID:", player_id)
 		print("LOADING PROFILE...")
 		print("================================")
+
+		setup_account_storage()
+
+		load_best_score()
+		load_profile_stats()
 
 		SupabaseAuth.load_profile()
 		SupabaseAuth.load_stats()
@@ -933,6 +948,7 @@ func load_rewarded_ad() -> void:
 		AdRequest.new(),
 		callback
 	)
+	print("🔥 REWARDED UNIT ID: ", unit_id)
 
 # =========================================================
 # SCREEN
@@ -3129,7 +3145,7 @@ func save_player_name() -> void:
 		player_name
 	)
 
-	config.save("user://player_settings.cfg")
+	config.save(player_settings_file)
 	
 # =========================================================
 # PLAYER NAME INPUT
@@ -3394,9 +3410,7 @@ func _on_profile_loaded_from_supabase(
 		player_id
 	)
 
-	var save_error := config.save(
-		"user://player_settings.cfg"
-	)
+	var save_error := config.save(player_settings_file)
 
 	print("PROFILE LOCAL SAVE RESULT:", save_error)
 
@@ -5564,6 +5578,20 @@ func handle_tap(position: Vector2) -> void:
 			return
 
 		# -------------------------------------------------
+		# DELETE ACCOUNT
+		# -------------------------------------------------
+
+		if settings_delete_account_rect.has_point(position):
+
+			print("================================")
+			print("🗑️ DELETE ACCOUNT PRESSED")
+			print("================================")
+
+			show_delete_account_confirmation()
+
+			return
+
+		# -------------------------------------------------
 		# LOG OUT
 		# -------------------------------------------------
 
@@ -5994,7 +6022,7 @@ func draw_settings_screen() -> void:
 		20,
 		safe_top + 135,
 		w - 40,
-		275
+		330
 	)
 
 	draw_rounded_rect(
@@ -6082,12 +6110,32 @@ func draw_settings_screen() -> void:
 	)
 
 	# =====================================================
+	# DELETE ACCOUNT
+	# =====================================================
+
+	settings_delete_account_rect = Rect2(
+		card.position.x + 15,
+		card.position.y + 205,
+		card.size.x - 30,
+		45
+	)
+
+	draw_button(
+		settings_delete_account_rect,
+		"DELETE ACCOUNT",
+		Color("#19222D"),
+		"delete_account",
+		null,
+		Color("#FF3152")
+	)
+
+	# =====================================================
 	# LOG OUT
 	# =====================================================
 
 	settings_logout_rect = Rect2(
 		card.position.x + 15,
-		card.position.y + 205,
+		card.position.y + 260,
 		card.size.x - 30,
 		45
 	)
@@ -6109,7 +6157,7 @@ func draw_settings_screen() -> void:
 		"DON'T TAP RED",
 		Vector2(
 			w / 2.0,
-			safe_top + 430
+			safe_top + 490
 		),
 		13,
 		Color("#697382")
@@ -6119,7 +6167,7 @@ func draw_settings_screen() -> void:
 		"VERSION 1.0",
 		Vector2(
 			w / 2.0,
-			safe_top + 450
+			safe_top + 510
 		),
 		9,
 		Color("#3F4854")
@@ -6453,6 +6501,95 @@ func complete_revive() -> void:
 
 	queue_redraw()
 
+# =====================================================
+# DELETE ACCOUNT CONFIRMATION
+# =====================================================
+
+func show_delete_account_confirmation() -> void:
+
+	print("🗑️ SHOW DELETE ACCOUNT CONFIRMATION")
+
+	if delete_account_dialog == null:
+
+		delete_account_dialog = ConfirmationDialog.new()
+
+		delete_account_dialog.title = "Delete Account"
+
+		delete_account_dialog.dialog_text = (
+			"This will permanently delete your account "
+			+ "and associated game data.\n\n"
+			+ "This action cannot be undone."
+		)
+
+		delete_account_dialog.ok_button_text = "DELETE"
+		delete_account_dialog.cancel_button_text = "CANCEL"
+
+		add_child(delete_account_dialog)
+
+		delete_account_dialog.confirmed.connect(
+			_on_delete_account_confirmed
+		)
+
+	delete_account_dialog.popup_centered(
+		Vector2(420, 240)
+	)
+
+# =====================================================
+# DELETE ACCOUNT CONFIRMED
+# =====================================================
+
+func _on_delete_account_confirmed() -> void:
+
+	print("================================")
+	print("🗑️ DELETE ACCOUNT CONFIRMED")
+	print("================================")
+
+	if SupabaseAuth.user_id.is_empty():
+
+		print("❌ DELETE ACCOUNT: USER NOT SIGNED IN")
+
+		return
+
+	account_delete_in_progress = true
+
+	print(
+		"👤 DELETING USER:",
+		SupabaseAuth.user_id
+	)
+
+	SupabaseAuth.delete_account()
+
+# =====================================================
+# ACCOUNT DELETED SUCCESSFULLY
+# =====================================================
+
+func _on_account_deleted() -> void:
+
+	if not account_delete_in_progress:
+		return
+
+	print("================================")
+	print("✅ ACCOUNT DELETED SUCCESSFULLY")
+	print("================================")
+
+	account_delete_in_progress = false
+
+	show_settings = false
+	show_menu = false
+	show_profile = false
+	show_leaderboard = false
+	playing = false
+	show_result = false
+	show_revive_page = false
+
+	queue_redraw()
+
+	await get_tree().create_timer(0.2).timeout
+
+	get_tree().change_scene_to_file(
+		"res://login.tscn"
+	)
+
 # =========================================================
 # START DAILY CHALLENGE
 # =========================================================
@@ -6757,6 +6894,9 @@ func _on_stats_loaded_from_supabase(
 
 func save_profile_stats_local_only() -> void:
 
+	if profile_stats_file.is_empty():
+		return
+
 	var config := ConfigFile.new()
 
 	config.set_value(
@@ -6783,9 +6923,7 @@ func save_profile_stats_local_only() -> void:
 		achievements_unlocked
 	)
 
-	config.save(
-		"user://profile_stats.cfg"
-	)
+	config.save(profile_stats_file)
 
 # =========================================================
 # SUCCESS
@@ -7410,9 +7548,7 @@ func confirm_player_name() -> void:
 		player_name
 	)
 
-	config.save(
-		"user://player_settings.cfg"
-	)
+	config.save(player_settings_file)
 
 	# =====================================================
 	# SAVE PROFILE TO SUPABASE
@@ -7506,6 +7642,39 @@ func _notification(what: int) -> void:
 				particle_color
 			)
 
+func setup_account_storage() -> void:
+
+    if SupabaseAuth.user_id.is_empty():
+
+        print("⚠️ ACCOUNT STORAGE: USER ID MISSING")
+        return
+
+    best_file = (
+        "user://best_score_" +
+        SupabaseAuth.user_id +
+        ".cfg"
+    )
+
+    profile_stats_file = (
+        "user://profile_stats_" +
+        SupabaseAuth.user_id +
+        ".cfg"
+    )
+
+    player_settings_file = (
+        "user://player_settings_" +
+        SupabaseAuth.user_id +
+        ".cfg"
+    )
+
+    print("================================")
+    print("💾 ACCOUNT STORAGE INITIALIZED")
+    print("USER ID:", SupabaseAuth.user_id)
+    print("BEST FILE:", best_file)
+    print("PROFILE FILE:", profile_stats_file)
+    print("SETTINGS FILE:", player_settings_file)
+    print("================================")
+
 # =========================================================
 # STORAGE
 # =========================================================
@@ -7524,6 +7693,9 @@ func save_best_score() -> void:
 
 
 func load_best_score() -> void:
+
+	if best_file.is_empty():
+		return
 
 	var config := ConfigFile.new()
 
@@ -7622,7 +7794,10 @@ func load_profile_stats() -> void:
 
 	var config := ConfigFile.new()
 
-	if config.load("user://profile_stats.cfg") != OK:
+	if profile_stats_file.is_empty():
+		return
+
+	if config.load(profile_stats_file) != OK:
 		return
 
 	games_played = int(
