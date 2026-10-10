@@ -170,7 +170,7 @@ const SUPABASE_URL: String = "https://cyobggtrsmldmaalitpi.supabase.co"
 
 const SUPABASE_KEY: String = "sb_publishable__Kg9gSUD5tgHQWsSmLCcJA_Sk0yn4rw"
 
-const GAME_CHALLENGE_URL := "https://donttapred-web.vercel.app/challenge"
+const GAME_CHALLENGE_URL := "https://donttapred.in/challenge"
 
 var leaderboard_http: HTTPRequest
 var submit_http: HTTPRequest
@@ -5951,9 +5951,7 @@ func start_revive_after_reward() -> void:
 
 func _open_challenge(score: int) -> void:
 
-	var challenge_url := \
-		"https://donttapred-web.vercel.app/challenge?score=" \
-		+ str(score)
+	var challenge_url := GAME_CHALLENGE_URL + "?score=" + str(score)
 
 	print("================================")
 	print("🔥 BEAT MY SCORE")
@@ -5961,6 +5959,7 @@ func _open_challenge(score: int) -> void:
 	print("🔗 CHALLENGE:", challenge_url)
 	print("================================")
 
+	DisplayServer.clipboard_set(challenge_url)
 	OS.shell_open(challenge_url)
 
 # =========================================================

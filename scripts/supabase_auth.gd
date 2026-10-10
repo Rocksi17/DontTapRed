@@ -3,6 +3,9 @@ extends Node
 signal login_success(user_id: String)
 signal login_failed(message: String)
 
+signal signup_success(message: String)
+signal signup_failed(message: String)
+
 signal session_restored(user_id: String)
 signal session_restore_failed()
 signal logged_out()
@@ -1209,3 +1212,108 @@ func logout() -> void:
 	print("================================")
 
 	logged_out.emit()
+
+
+# =========================================================
+# SIGN UP
+# =========================================================
+
+func signup(
+	email: String,
+	password: String,
+	username: String
+) -> void:
+
+	print("================================")
+	print("🆕 SUPABASE SIGNUP")
+	print("EMAIL:", email)
+	print("USERNAME:", username)
+	print("================================")
+
+	var url := SUPABASE_URL + "/auth/v1/signup"
+
+	var headers := PackedStringArray([
+		"apikey: " + SUPABASE_KEY,
+		"Content-Type: application/json"
+	])
+
+	var body := JSON.stringify({
+		"email": email,
+		"password": password,
+		"data": {
+			"username": username
+		},
+		"email_redirect_to": "https://donttapred.in/account-confirmed"
+	})
+
+	var http := HTTPRequest.new()
+
+	add_child(http)
+
+	http.request_completed.connect(
+		func(
+			result: int,
+			response_code: int,
+			response_headers: PackedStringArray,
+			response_body: PackedByteArray
+		) -> void:
+
+			var response_text := (
+				response_body.get_string_from_utf8()
+			)
+
+			print("================================")
+			print("🆕 SUPABASE SIGNUP RESPONSE")
+			print("HTTP:", response_code)
+			print("BODY:", response_text)
+			print("================================")
+
+			if response_code >= 200 and response_code < 300:
+
+				print("✅ SIGNUP SUCCESS")
+
+				signup_success.emit(
+					"Account created! Check your email to confirm your account."
+				)
+
+			else:
+
+				var message := "Account creation failed."
+
+				var json := JSON.new()
+
+				if json.parse(response_text) == OK:
+
+					var data = json.data
+
+					if typeof(data) == TYPE_DICTIONARY:
+
+						if data.has("msg"):
+							message = str(data["msg"])
+
+						elif data.has("message"):
+							message = str(data["message"])
+
+						elif data.has("error_description"):
+							message = str(
+								data["error_description"]
+							)
+
+				print("❌ SIGNUP FAILED:", message)
+
+				signup_failed.emit(message)
+
+			http.queue_free()
+	)
+
+	var error := http.request(
+		url,
+		headers,
+		HTTPClient.METHOD_POST,
+		body
+	)
+
+	print(
+		"🆕 SIGNUP REQUEST RESULT:",
+		error
+	)

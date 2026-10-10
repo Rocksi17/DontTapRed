@@ -93,6 +93,24 @@ func _ready() -> void:
 	)
 
 	# =====================================================
+	# SUPABASE SIGNUP SIGNALS
+	# =====================================================
+
+	if not SupabaseAuth.signup_success.is_connected(
+		_on_signup_success
+	):
+		SupabaseAuth.signup_success.connect(
+			_on_signup_success
+		)
+
+	if not SupabaseAuth.signup_failed.is_connected(
+		_on_signup_failed
+	):
+		SupabaseAuth.signup_failed.connect(
+			_on_signup_failed
+		)
+
+	# =====================================================
 	# SESSION RESTORE SIGNALS
 	# =====================================================
 
@@ -911,37 +929,183 @@ func _on_login_failed(message: String) -> void:
 	email_input.release_focus()
 	password_input.release_focus()
 
-# =========================================================
+# =====================================================
 # CREATE ACCOUNT
-# =========================================================
+# =====================================================
 
 func _on_create_account_pressed() -> void:
 
 	print("================================")
-	print("🌐 OPENING CREATE ACCOUNT")
+	print("🆕 CREATE ACCOUNT")
 	print("================================")
 
-	# Close iPhone keyboard
 	_hide_keyboard()
 
-	# Small delay so iOS finishes closing keyboard
-	await get_tree().create_timer(0.25).timeout
+	_show_signup_form()
 
-	var signup_url := "https://donttapred-web.vercel.app/signup"
 
-	print("🔗 SIGNUP URL:")
-	print(signup_url)
+# =====================================================
+# IN-APP SIGNUP FORM
+# =====================================================
 
-	var error := OS.shell_open(signup_url)
+func _show_signup_form() -> void:
 
-	if error != OK:
+	print("================================")
+	print("🆕 SHOWING IN-APP SIGNUP FORM")
+	print("================================")
 
-		print("❌ COULD NOT OPEN WEBSITE")
-		print("ERROR:", error)
+	var signup_dialog := ConfirmationDialog.new()
 
-	else:
+	signup_dialog.title = "Create Account"
+	signup_dialog.ok_button_text = "CREATE ACCOUNT"
+	signup_dialog.cancel_button_text = "CANCEL"
 
-		print("✅ WEBSITE OPENED")
+	var container := VBoxContainer.new()
+
+	container.custom_minimum_size = Vector2(280, 190)
+
+	container.add_theme_constant_override(
+		"separation",
+		12
+	)
+
+	# -------------------------------------------------
+	# USERNAME
+	# -------------------------------------------------
+
+	var username_input := LineEdit.new()
+
+	username_input.placeholder_text = "USERNAME"
+	username_input.custom_minimum_size = Vector2(280, 45)
+
+	container.add_child(username_input)
+
+	# -------------------------------------------------
+	# EMAIL
+	# -------------------------------------------------
+
+	var signup_email_input := LineEdit.new()
+
+	signup_email_input.placeholder_text = "EMAIL"
+	signup_email_input.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_EMAIL_ADDRESS
+	signup_email_input.custom_minimum_size = Vector2(280, 45)
+
+	container.add_child(signup_email_input)
+
+	# -------------------------------------------------
+	# PASSWORD
+	# -------------------------------------------------
+
+	var signup_password_input := LineEdit.new()
+
+	signup_password_input.placeholder_text = "PASSWORD"
+	signup_password_input.secret = true
+	signup_password_input.custom_minimum_size = Vector2(280, 45)
+
+	container.add_child(signup_password_input)
+
+	# -------------------------------------------------
+	# ADD FORM
+	# -------------------------------------------------
+
+	signup_dialog.add_child(container)
+
+	add_child(signup_dialog)
+
+	# -------------------------------------------------
+	# CREATE ACCOUNT
+	# -------------------------------------------------
+
+	signup_dialog.confirmed.connect(
+		func() -> void:
+
+			var clean_username := (
+				username_input.text.strip_edges()
+			)
+
+			var clean_email := (
+				signup_email_input.text.strip_edges()
+			)
+
+			var clean_password := (
+				signup_password_input.text
+			)
+
+			print("================================")
+			print("🆕 IN-APP SIGNUP SUBMITTED")
+			print("USERNAME:", clean_username)
+			print("EMAIL:", clean_email)
+			print("================================")
+
+			# ---------------------------------------------
+			# VALIDATION
+			# ---------------------------------------------
+
+			if clean_username.is_empty():
+
+				status_label.text = (
+					"Please enter a username."
+				)
+
+				signup_dialog.popup_centered(
+					Vector2(340, 300)
+				)
+
+				return
+
+			if clean_email.is_empty():
+
+				status_label.text = (
+					"Please enter your email."
+				)
+
+				signup_dialog.popup_centered(
+					Vector2(340, 300)
+				)
+
+				return
+
+			if clean_password.length() < 6:
+
+				status_label.text = (
+					"Password must be at least 6 characters."
+				)
+
+				signup_dialog.popup_centered(
+					Vector2(340, 300)
+				)
+
+				return
+
+			# ---------------------------------------------
+			# CREATE ACCOUNT
+			# ---------------------------------------------
+
+			status_label.add_theme_color_override(
+				"font_color",
+				Color("#19E66F")
+			)
+
+			status_label.text = (
+				"Creating account..."
+			)
+
+			SupabaseAuth.signup(
+				clean_email,
+				clean_password,
+				clean_username
+			)
+
+			signup_dialog.queue_free()
+	)
+
+	# -------------------------------------------------
+	# OPEN DIALOG
+	# -------------------------------------------------
+
+	signup_dialog.popup_centered(
+		Vector2(340, 300)
+	)
 
 # =========================================================
 # DEEP LINK
@@ -957,3 +1121,43 @@ func _on_deeplink_deeplink_received(url) -> void:
 	print("🔗 URL:", link)
 
 	print("================================")
+
+# =====================================================
+# SIGNUP SUCCESS
+# =====================================================
+
+func _on_signup_success(message: String) -> void:
+
+	print("================================")
+	print("✅ SIGNUP SUCCESS")
+	print("MESSAGE:", message)
+	print("================================")
+
+	status_label.add_theme_color_override(
+		"font_color",
+		Color("#19E66F")
+	)
+
+	status_label.text = (
+		"Account created!\n"
+		+ "Check your email to confirm."
+	)
+
+
+# =====================================================
+# SIGNUP FAILED
+# =====================================================
+
+func _on_signup_failed(message: String) -> void:
+
+	print("================================")
+	print("❌ SIGNUP FAILED")
+	print("MESSAGE:", message)
+	print("================================")
+
+	status_label.add_theme_color_override(
+		"font_color",
+		Color("#FF3152")
+	)
+
+	status_label.text = message

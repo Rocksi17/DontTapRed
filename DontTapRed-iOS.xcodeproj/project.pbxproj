@@ -175,6 +175,7 @@
 				ORGANIZATIONNAME = GodotEngine;
 				TargetAttributes = {
 					D0BCFE3318AEBDA2004A7AAE = {
+						DevelopmentTeam = 919620943662;
 						LastSwiftMigration = 1250;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
@@ -386,11 +387,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "DontTapRed-iOS/DontTapRed-iOS.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				CURRENT_PROJECT_VERSION = 1.0.0;
-				DEVELOPMENT_TEAM = 919620943662;
+				DEVELOPMENT_TEAM = YT7G39J4NS;
 				EXECUTABLE_NAME = "DontTapRed-iOS";
 				INFOPLIST_FILE = "DontTapRed-iOS/DontTapRed-iOS-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "DON’T TAP RED";
