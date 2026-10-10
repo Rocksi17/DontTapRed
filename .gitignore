@@ -24,3 +24,11 @@ android/**/.cxx/
 *.xcarchive
 *.dSYM/
 *.xcframework/
+
+# Local Xcode workspace state
+**/xcuserdata/
+
+# Temporary iOS test exports
+DontTapRed-iOS-Test.pck
+DontTapRed-iOS-Test.xcodeproj/
+DontTapRed-iOS-Test/
